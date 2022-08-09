@@ -1,0 +1,27 @@
+$ vi /etc/ansible/roles/Windows/task/main.yml
+----
+#
+# PandoraAgent-Windows Main Playbook
+#
+- name: Transfer pandoraFMS Agent Installer
+  win_copy: 
+    src: /etc/ansible/roles/pandoraAgent-Windows/files/var/tmp/PandoraFMS-WindowsAgentv6.0SP2-160509_x86_64.exe
+    dest: C:\Users\Administrator\PandoraFMS-WindowsAgentv6.0SP2-160509_x86_64.exe
+  tags: prod
+
+- name: Install the latest version of pandoraFMS Agent
+  raw: C:\Users\Administrator\PandoraFMS-WindowsAgentv6.0SP2-160509_x86_64.exe /S
+  tags: prod
+
+- name: pandoraFMS Agent settings
+  win_template: 
+    src: /etc/ansible/roles/pandoraAgent-Windows/templates/etc/pandora/pandora_agent.conf
+    dest: C:\Program Files\pandora_agent\pandora_agent.conf
+  tags: prod
+
+- name: Starting & enable pandora agent
+  win_service:
+    name: PandoraFMSAgent
+    state: started
+    start_mode: auto
+  tags: prod
