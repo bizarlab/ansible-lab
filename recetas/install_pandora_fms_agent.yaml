@@ -1,0 +1,42 @@
+---
+    - name: Actualizar todos los paquetes
+      yum:
+              name: '*'
+              state: latest
+              update_cache: yes
+              update_only: yes
+      register: yum_update_status
+
+    - name: Ejecutar este comando de mierda
+      register: mierda
+      command: "dnf config-manager --set-enabled ol8_codeready_builder"
+
+    - name: Instalar paquetes necesarios
+      yum:
+              name:
+                      - perl
+                      - perl-Sys-Syslog
+                      - perl-YAML-Tiny
+              state: present
+
+    - name: Descargar agente
+      get_url:
+              url: http://firefly.artica.es/pandorafms/747/RHEL_CentOS/pandorafms_agent_unix-7.0NG.747.noarch.rpm
+              dest: /usr/local/src
+
+    - name: Instalar paquete
+      yum:
+              name: /usr/local/src/pandorafms_agent_unix-7.0NG.747.noarch.rpm
+              disable_gpg_check: True
+              state: present
+
+    - name: Poner ip del server master
+      lineinfile:
+              path: /etc/pandora/pandora_agent.conf
+              regexp: '^server_ip'
+              line: server_ip 172.18.150.54
+
+    - name: Start service pandora_agent_daemon, if not started
+      systemd:
+              name: pandora_agent_daemon
+              state: started
