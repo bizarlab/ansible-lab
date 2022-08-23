@@ -1,4 +1,10 @@
 ---
+- hosts: monitor
+  become: yes
+
+
+  tasks:
+
     - name: Actualizar todos los paquetes
       yum:
               name: '*'
@@ -7,9 +13,15 @@
               update_only: yes
       register: yum_update_status
 
+    - name: Habilitar epel-release
+      yum:
+              name: epel-release
+              state: latest
+
     - name: Ejecutar este comando de mierda
       register: mierda
       command: "dnf config-manager --set-enabled ol8_codeready_builder"
+      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '8'
 
     - name: Instalar paquetes necesarios
       yum:
@@ -17,6 +29,7 @@
                       - perl
                       - perl-Sys-Syslog
                       - perl-YAML-Tiny
+                      - perl-IO-Compress
               state: present
 
     - name: Descargar agente
@@ -34,9 +47,10 @@
       lineinfile:
               path: /etc/pandora/pandora_agent.conf
               regexp: '^server_ip'
-              line: server_ip 172.18.150.54
+              line: server_ip 172.18.150.136
 
     - name: Start service pandora_agent_daemon, if not started
       systemd:
               name: pandora_agent_daemon
               state: started
+
